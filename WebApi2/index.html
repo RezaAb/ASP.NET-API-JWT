@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+<h1>Testing API</h1>
+
+username: <input type="text" id="username"/>
+password: <input type="text" id="password"/>
+<button type="button" onclick="doLogin()">Login</button>
+<br/>
+<br/>
+person id: <input type="text" id="personid"/>
+person name: <input type="text" id="personname"/>
+person family: <input type="text" id="personfamily"/>
+<button type="button" onclick="doCallSavePerson()">Seve Person</button>
+<br/>
+<br/>
+<button type="button" onclick="doCallGetAllPersons()" id="callApi">Get All Persons API</button>
+
+<script type="text/javascript">
+
+    var jwtToken;
+
+    function isNullOrEmpty(value) {
+        return (typeof value == 'undefined' || !value);
+    }
+
+    function doCallGetAllPersons() {
+
+        $.ajax({
+            url: "/api/persons",
+            type: 'GET'
+        }).then(function(response) {
+                alert(JSON.stringify(response, null, ' '));
+            },
+            function(xhr, status, error) {
+                var response = xhr.responseText;
+                alert(JSON.stringify(JSON.parse(response), null, ' '));
+            });
+    }
+
+    function doCallSavePerson() {
+
+        var personid = $('#personid').val();
+        var personname = $('#personname').val();
+        var personfamily = $('#personfamily').val();
+
+        if (isNullOrEmpty(personid)) {
+            alert('Please enter person id.');
+            return;
+        }
+
+        $.ajax({
+            headers:{'Authorization': 'Bearer ' + jwtToken},
+            url: "/api/persons/",
+            data: {
+                Id: personid,
+                Name: personname,
+                Family: personfamily
+            },
+            type: 'POST'
+        }).then(function(response) {
+                alert(JSON.stringify(response, null, ' '));
+            },
+            function(xhr, status, error) {
+                var response = xhr.responseText;
+                alert(JSON.stringify(JSON.parse(response), null, ' '));
+            });
+    }
+
+    function doLogin() {
+
+        var username = $('#username').val();
+        var password = $('#password').val();
+        $.ajax({
+            url: "/api/account/",
+            data: {
+                username: username,
+                password: password
+            },
+            type: 'POST'
+        }).then(function(response) {
+            alert(JSON.stringify(response, null, ' '));
+            jwtToken = response;
+                setHeadersOfAllRequests();
+            },
+            function(xhr, status, error) {
+                var response = xhr.responseText;
+                alert(JSON.stringify(JSON.parse(response), null, ' '));
+            });
+    }
+
+    function setHeadersOfAllRequests() {
+        $.ajaxSetup({
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + jwtToken);
+            }
+        });
+    }
+</script>
+</body>
+</html>
